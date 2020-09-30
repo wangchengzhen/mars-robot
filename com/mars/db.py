@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
 import pymysql
 
 
@@ -36,9 +35,14 @@ def queryById(sql):
     db.close()
 
 
+# 新增
 def insert(sql):
     db = getDB()
     cursor = db.cursor()
-    cursor.execute(sql)
-    db.commit()
+    try:
+        cursor.execute(sql)
+        db.commit()
+    except:
+        print("Error: unable to insert data")
+        db.rollback()
     db.close
