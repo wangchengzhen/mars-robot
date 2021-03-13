@@ -1,11 +1,12 @@
 # -*- coding: UTF-8 -*-
-import requests
 import re
-from bs4 import BeautifulSoup
-import pymysql
 import time
+from com.mars.db import queryAll
+from com.mars.db import insert
+from com.mars.html import soup
 
 ids = []
+errorIds = []
 
 
 # 格式化2021-01-01 12:00:00
@@ -13,48 +14,15 @@ def local():
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
 
-def conn():
-    return pymysql.connect(
-        "localhost",
-        "root",
-        "pa$$w0rd",
-        "mars-robot",
-        charset='utf8'
-    )
-
-
-def query(sql):
-    db = conn()
-    cursor = db.cursor()
-    try:
-        cursor.execute(sql)
-        return cursor.fetchall()
-    except:
-        print("Error: unable to query data")
-    db.commit()
-    db.close
-
-
-def insert(sql):
-    db = conn()
-    cursor = db.cursor()
-    # print('SQL:' + sql)
-    try:
-        cursor.execute(sql)
-    except:
-        print("Error: unable to insert data")
-    db.commit()
-    db.close
-
-
-def soup(web_url):  # 爬虫获取网页没啥好说的
-    header = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3861.400 QQBrowser/10.7.4313.400"}
-    # 不加text返回的是response，加了返回的是字符串
-    html = requests.get(url=web_url, headers=header).text
-    html_soup = BeautifulSoup(html, "lxml")
-    return html_soup
+def contents(web_url):  # 爬虫获取网页没啥好说的
+    html_soup = soup(web_url)
+    tags = html_soup.select('.tagCol > tbody > tr > td > a')
+    temps = []
+    for tag in tags:
+        temp = tag.get_text()
+        if len(temp) > 0:
+            temps.append(temp)
+    return temps
 
 
 def books(web_url):
@@ -76,7 +44,7 @@ def Id(target_url):
 def country(attr):
     attrs = []
     if attr.find('[') == -1:
-        attrs.append('中')
+        attrs.append('')
         attrs.append(attr)
     else:
         attrs.append(attr.split('[')[1].split(']')[0])
@@ -85,80 +53,113 @@ def country(attr):
 
 
 def save(params):
-    sql = f"INSERT INTO t_book (id, `title`, cover_image, score, comments, country, author, press, " \
-          f"translator, edition_date, price, page_num, isbn, gmt_create, gmt_modified) VALUES ( "
+    insert_sql = f"INSERT INTO t_book (id, `title`, cover_image, score, comments, country, author, press, " \
+                 f"translator, edition_date, price, page_num, isbn, gmt_create, gmt_modified) VALUES ( "
     for param in params:
-        sql = sql + "'" + str(param) + "',"
-    sql = sql[:-1] + ")"
-    insert(sql)
+        insert_sql = insert_sql + "'" + str(param) + "',"
+    insert_sql = insert_sql[:-1] + ")"
+    result = insert(insert_sql)
+    if result == 0:
+        errorIds.append(params[0])
+        print('Error:', errorIds)
 
 
 def get_book(book_url):  # 爬虫获取网页没啥好说的
-    book_soup = soup(book_url)
-    # 内容
-    content = book_soup.find_all(id='info')[0]
-    # 标题
-    title = book_soup.find_all(property='v:itemreviewed')[0].get_text()
-    # 评分
-    score = book_soup.find_all(property='v:average')[0].get_text()
-    # 评价人数
-    comments = book_soup.find_all(property='v:votes')[0].get_text()
-    # 封面
-    cover_image = book_soup.find_all(rel='v:photo')[0]['src']
+    try:
+        book_soup = soup(book_url)
+        # 内容
+        content = book_soup.find_all(id='info')[0]
+        # 标题
+        title = book_soup.find_all(property='v:itemreviewed')[0].get_text()
+        # 评分
+        score = "0"
+        scores = book_soup.find_all(property='v:average')
+        if len(scores) > 0:
+            score = replaces(str(scores[0].get_text()))
+            if len(score) == 0:
+                score = "0"
 
-    # 去除空格,在用换行符分割成list
-    temps = replaces(content.get_text()).split('\n')
-    info = []
-    for temps_index in range(len(temps)):
-        if temps_index > 0:
-            if temps[temps_index].find(':') == -1:
-                info[-1] = info[-1] + temps[temps_index]
+        # 评价人数
+        comments = 0
+        comment = book_soup.find_all(property='v:votes')
+        if len(comment) > 0:
+            comments = comment[0].get_text()
+            if len(comments) == 0:
+                comments = 0
+        # 封面
+        cover_image = book_soup.find_all(rel='v:photo')[0]['src']
+
+        # 去除空格,在用换行符分割成list
+        temps = replaces(content.get_text()).split('\n')
+        info = []
+        for temps_index in range(len(temps)):
+            if temps_index > 0:
+                if temps[temps_index].find(':') == -1:
+                    info[-1] = info[-1] + temps[temps_index]
+                else:
+                    info.append(temps[temps_index])
             else:
                 info.append(temps[temps_index])
-        else:
-            info.append(temps[temps_index])
 
-    params = [Id(book_url), title, cover_image, replaces(score), comments, '', '', '', '', '', '', '', '', local(),
-              local()]
-    for i in info:
-        if i.find('作者') > -1:
-            author = replaces(i.split(':')[1])
-            params[5] = country(author)[0]
-            params[6] = country(author)[1]
-        if i.find('出版社') > -1:
-            params[7] = replaces(i.split(':')[1])
-        if i.find('译者') > -1:
-            params[8] = replaces(i.split(':')[1])
-        if i.find('出版年') > -1:
-            params[9] = replaces(i.split(':')[1])
-        if i.find('定价') > -1:
-            params[10] = re.sub('[^0-9.]', '', i.split(':')[1])
-        if i.find('页数') > -1:
-            params[11] = replaces(i.split(':')[1])
-        if i.find('ISBN') > -1:
-            params[12] = replaces(i.split(':')[1])
-    print(params)
-    save(params)
+        params = [Id(book_url), title, cover_image, score, comments, '', '', '', '', '', 0, 0, '',
+                  local(),
+                  local()]
+        for i in info:
+            if i.find('作者') > -1:
+                author = replaces(i.split(':')[1])
+                params[5] = country(author)[0]
+                params[6] = country(author)[1].replace("'", "`")
+            if i.find('出版社') > -1:
+                params[7] = replaces(i.split(':')[1])
+            if i.find('译者') > -1:
+                params[8] = replaces(i.split(':')[1])
+            if i.find('出版年') > -1:
+                params[9] = replaces(i.split(':')[1])
+            if i.find('定价') > -1:
+                params[10] = re.sub('[^0-9.]', '', i.split(':')[1])
+            if i.find('页数') > -1:
+                pageSize = re.sub('[^0-9]', '', i.split(':')[1])
+                if pageSize == '':
+                    pageSize = '0'
+                params[11] = pageSize
+            if i.find('ISBN') > -1:
+                params[12] = replaces(i.split(':')[1])
+        print(params)
+        save(params)
+    except IndexError:
+        print('id:' + Id(book_url))
+        print('Error valueError')
 
 
 if __name__ == '__main__':
+
+    # 防重复查询豆瓣
     sql = f'select id from t_book'
-    temps = list(query(sql))
+    temps = list(queryAll(sql))
     for temp_index in range(0, len(temps)):
         ids.append(re.sub(r'\D', '', str(temps[temp_index])))
 
-    for index in range(0, 100, 20):
-        url = 'https://book.douban.com/tag/%E5%A4%96%E5%9B%BD%E6%96%87%E5%AD%A6?start=' + str(index) + '&type=T'
-        # 160-980
-        # url = 'https://book.douban.com/tag/%E5%B0%8F%E8%AF%B4?start=' + str(index) + '&type=T'
-        book = books(url)
-        print(book)
-        for book_url in book:
-            book_id = re.sub(r'\D', '', book_url)
-            try:
-                ids.index(book_id)
-            except ValueError:
-                print(local() + ' >>>>>>>>>>>>>>>>>>>>>>')
-                get_book(book_url)
-                ids.append(book_id)
-                time.sleep(30)
+    # 所有标签
+    tags = contents('https://book.douban.com/tag/?view=cloud')
+
+    for tags_index in range(8, len(tags), 1):
+    # 日本 index 580
+    # 7艺术 index 760
+        for index in range(0, 300, 20):
+            url = 'https://book.douban.com/tag/' + tags[tags_index] + '?start=' + str(index) + '&type=T'
+            book = books(url)
+            print('\n')
+            print('errorList:', errorIds)
+            time.sleep(20)
+            if len(book) == 0 or book is None:
+                time.sleep(20)
+                break
+            for book_url in book:
+                book_id = re.sub(r'\D', '', book_url)
+                try:
+                    ids.index(book_id)
+                except:
+                    print(local() + ' INFO --- [127.0.0.1]:', 'tag_index|', tags_index, '|tag|', tags[tags_index], '|index|', index)
+                    get_book(book_url)
+                    ids.append(book_id)
+                    time.sleep(20)
