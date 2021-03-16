@@ -8,7 +8,7 @@ def getDB():
         "localhost",
         "root",
         "pa$$w0rd",
-        "mars-robot",
+        "mars",
         charset='utf8'
     )
 
@@ -20,7 +20,7 @@ def queryAll(sql):
         cursor.execute(sql)
         return cursor.fetchall()
     except:
-        print("Error: unable to queryAll data")
+        print("Error: unable to queryAll data: " + sql)
     db.close()
 
 
@@ -31,7 +31,7 @@ def queryById(sql):
         cursor.execute(sql)
         return cursor.fetchone()
     except:
-        print("Error: unable to queryById data")
+        print("Error: unable to queryById data: " + sql)
     db.close()
 
 
@@ -39,10 +39,33 @@ def queryById(sql):
 def insert(sql):
     db = getDB()
     cursor = db.cursor()
+    result = 0
     try:
         cursor.execute(sql)
         db.commit()
+        result = 1
     except:
-        print("Error: unable to insert data")
+        print("Error: unable to insert data: " + sql)
         db.rollback()
-    db.close
+        result = 0
+    finally:
+        db.close
+        return result
+
+
+# 新增
+def update(sql):
+    db = getDB()
+    cursor = db.cursor()
+    result = 0
+    try:
+        cursor.execute(sql)
+        db.commit()
+        result = 1
+    except:
+        print("Error: unable to insert data: " + sql)
+        db.rollback()
+        result = 0
+    finally:
+        db.close
+        return result

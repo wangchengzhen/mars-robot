@@ -42,19 +42,27 @@ def Id(target_url):
 
 
 def country(attr):
-    attrs = []
-    if attr.find('[') == -1:
-        attrs.append('')
-        attrs.append(attr)
-    else:
-        attrs.append(attr.split('[')[1].split(']')[0])
-        attrs.append(attr.split('[')[1].split(']')[1])
+    attrs = ['', attr]
+    if attr.find('[') == -1 and attr.find('(') == -1 and attr.find('【') == -1 and attr.find('（') == -1:
+        return attrs
+    if attr.find('[') > -1:
+        attrs[0] = attr.split('[')[1].split(']')[0]
+        attrs[1] = attr.split('[')[1].split(']')[1]
+    if attr.find('(') > -1:
+        attrs[0] = attr.split('(')[1].split(')')[0]
+        attrs[1] = attr.split('(')[1].split(')')[1]
+    if attr.find('【') > -1:
+        attrs[0] = attr.split('【')[1].split('】')[0]
+        attrs[1] = attr.split('【')[1].split('】')[1]
+    if attr.find('（') > -1:
+        attrs[0] = attr.split('（')[1].split('）')[0]
+        attrs[1] = attr.split('（')[1].split('）')[1]
     return attrs
 
 
 def save(params):
     insert_sql = f"INSERT INTO t_book (id, `title`, cover_image, score, comments, country, author, press, " \
-                 f"translator, edition_date, price, page_num, isbn, gmt_create, gmt_modified) VALUES ( "
+                 f"translator, edition_date, price, page_num, isbn, gmt_created, gmt_modified) VALUES ( "
     for param in params:
         insert_sql = insert_sql + "'" + str(param) + "',"
     insert_sql = insert_sql[:-1] + ")"
@@ -64,9 +72,9 @@ def save(params):
         print('Error:', errorIds)
 
 
-def get_book(book_url):  # 爬虫获取网页没啥好说的
+def get_book(bookUrl):  # 爬虫获取网页没啥好说的
     try:
-        book_soup = soup(book_url)
+        book_soup = soup(bookUrl)
         # 内容
         content = book_soup.find_all(id='info')[0]
         # 标题
@@ -101,7 +109,7 @@ def get_book(book_url):  # 爬虫获取网页没啥好说的
             else:
                 info.append(temps[temps_index])
 
-        params = [Id(book_url), title, cover_image, score, comments, '', '', '', '', '', 0, 0, '',
+        params = [Id(bookUrl), title, cover_image, score, comments, '', '', '', '', '', 0, 0, '',
                   local(),
                   local()]
         for i in info:
@@ -110,7 +118,7 @@ def get_book(book_url):  # 爬虫获取网页没啥好说的
                 params[5] = country(author)[0]
                 params[6] = country(author)[1].replace("'", "`")
             if i.find('出版社') > -1:
-                params[7] = replaces(i.split(':')[1])
+                params[7] = replaces(i.split(':')[1]).replace("'", "`")
             if i.find('译者') > -1:
                 params[8] = replaces(i.split(':')[1])
             if i.find('出版年') > -1:
@@ -127,7 +135,7 @@ def get_book(book_url):  # 爬虫获取网页没啥好说的
         print(params)
         save(params)
     except IndexError:
-        print('id:' + Id(book_url))
+        print('id:' + Id(bookUrl))
         print('Error valueError')
 
 
@@ -142,15 +150,16 @@ if __name__ == '__main__':
     # 所有标签
     tags = contents('https://book.douban.com/tag/?view=cloud')
 
-    for tags_index in range(8, len(tags), 1):
-    # 日本 index 580
-    # 7艺术 index 760
-        for index in range(0, 300, 20):
+    for tags_index in range(7, len(tags), 1):
+        # 7艺术 index 760
+        # 108 |tag| 编程 |index| 200
+        # 118 | tag | 英语 | index | 120
+        for index in range(300, 1000, 20):
             url = 'https://book.douban.com/tag/' + tags[tags_index] + '?start=' + str(index) + '&type=T'
             book = books(url)
             print('\n')
             print('errorList:', errorIds)
-            time.sleep(20)
+            # time.sleep(20)
             if len(book) == 0 or book is None:
                 time.sleep(20)
                 break
