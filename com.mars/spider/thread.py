@@ -1,5 +1,5 @@
 import _thread
-from db.db import *
+from com.mars.db import *
 
 # 为线程定义一个函数
 def print_time( threadId ):
