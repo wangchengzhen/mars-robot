@@ -149,17 +149,18 @@ if __name__ == '__main__':
 
     # 所有标签
     tags = contents('https://book.douban.com/tag/?view=cloud')
-
-    for tags_index in range(7, len(tags), 1):
+    print(tags)
+    for tags_index in range(0, len(tags), 1):
         # 7艺术 index 760
         # 108 |tag| 编程 |index| 200
         # 118 | tag | 英语 | index | 120
-        for index in range(300, 1000, 20):
+        time.sleep(20)
+        for index in range(0, 1000, 20):
             url = 'https://book.douban.com/tag/' + tags[tags_index] + '?start=' + str(index) + '&type=T'
             book = books(url)
             print('\n')
             print('errorList:', errorIds)
-            # time.sleep(20)
+            time.sleep(20)
             if len(book) == 0 or book is None:
                 time.sleep(20)
                 break
@@ -167,8 +168,11 @@ if __name__ == '__main__':
                 book_id = re.sub(r'\D', '', book_url)
                 try:
                     ids.index(book_id)
-                except:
-                    print(local() + ' INFO --- [127.0.0.1]:', 'tag_index|', tags_index, '|tag|', tags[tags_index], '|index|', index)
+                    print(local() + ' INFO --- [127.0.0.1]:', 'tag_index|', tags_index, '|tag|', tags[tags_index],
+                          '|index|', index)
                     get_book(book_url)
                     ids.append(book_id)
                     time.sleep(20)
+                except:
+                    print(local() + ' ERROR --- [127.0.0.1]:', 'tag_index|', tags_index, '|tag|', tags[tags_index],
+                          '|index|', index)

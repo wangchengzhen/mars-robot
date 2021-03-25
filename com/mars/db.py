@@ -4,13 +4,7 @@ import pymysql
 
 
 def getDB():
-    return pymysql.connect(
-        "localhost",
-        "root",
-        "pa$$w0rd",
-        "mars",
-        charset='utf8'
-    )
+    return pymysql.connect(host="localhost", user="root", password="pa$$w0rd", database="mars",charset="utf8mb4")
 
 
 def queryAll(sql):

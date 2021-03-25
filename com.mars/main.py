@@ -25,6 +25,6 @@ def reversedList():
 
 
 if __name__ == '__main__':
-    # printDiamond()
+    printDiamond()
     # cpp(8)
-    reversedList()
+    # reversedList()

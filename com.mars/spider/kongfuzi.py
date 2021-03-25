@@ -26,7 +26,7 @@ def score(isbn):
         return 0
     print('score:' + str(item[3]))
     print('comments:' + str(item[4]))
-    if (float(item[3]) > 8.4 and int(item[4]) > 3000) or (float(item[3]) > 9 and int(item[4]) > 1000):
+    if (float(item[3]) > 8.6 and int(item[4]) > 2000) or (float(item[3]) > 9 and int(item[4]) > 500):
         print(item)
         if float(item[3]) > 10 and int(item[4]) > 10000:
             content = (str(item[1]) + '|' + str(item[3]) + '|' + str(item[4]))
@@ -52,4 +52,4 @@ def loop(start, limit, shopId):
 
 
 if __name__ == '__main__':
-    loop(0, 253, 23715)
+    loop(0, 138, 434322)

@@ -2,7 +2,7 @@
 import time
 import requests
 import json
-from com.mars.mail import sendHtml
+from com.mars.mail import send
 from com.mars.cart import add
 from com.mars.db import queryAll, update
 
@@ -26,9 +26,8 @@ def query(targetBook):
         for item in items[targetBook[3]: -1]:
             # print(item['price'])
             if float(item['price']) <= targetBook[2]:
-                content = "<a href='http://book.kongfz.com/%s/%s/'>跳转</a>" % (item['shopid'], item['itemid'])
                 # 邮箱信息提示
-                sendHtml('%s出现低价书' % targetBook[1], content)
+                send('%s出现低价书' % targetBook[1], targetBook[4])
                 # 加入购物车
                 add(item['shopid'], item['itemid'])
                 # 放入待删除列表
@@ -55,5 +54,5 @@ if __name__ == '__main__':
             query(book)
 
         # 休眠时间 1800s
-        time.sleep(60 * 60 * 0.5)
+        time.sleep(60 * 60 * 1/6)
         print('\n')
