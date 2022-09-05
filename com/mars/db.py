@@ -4,7 +4,7 @@ import pymysql
 
 
 def getDB():
-    return pymysql.connect(host="localhost", user="root", password="pa$$w0rd", database="mars",charset="utf8mb4")
+    return pymysql.connect(host="localhost", user="root", password="pa$$w0rd", database="mars", charset="utf8mb4")
 
 
 def queryAll(sql):
@@ -13,9 +13,10 @@ def queryAll(sql):
     try:
         cursor.execute(sql)
         return cursor.fetchall()
-    except:
+    except Exception as e:
         print("Error: unable to queryAll data: " + sql)
-    db.close()
+    else:
+        db.close()
 
 
 def queryById(sql):

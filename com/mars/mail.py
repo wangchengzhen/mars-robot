@@ -6,7 +6,7 @@ from email.header import Header
 
 # 第三方 SMTP 服务
 mail_host = "smtp.qq.com"  # 设置服务器:这个是qq邮箱服务器，直接复制就可以
-mail_pass = "qyimqrnmqjyodjaf"  # 授权码
+mail_pass = "qkdbhygvhkvkebhd"  # 授权码
 sender = 'mars-robot@qq.com'  # 你的邮箱地址
 receivers = ['210087652@qq.com']  # 收件人的邮箱地址，可设置为你的QQ邮箱或者其他邮箱，可多个
 
@@ -24,7 +24,7 @@ def send(subject, content):
         smtpObj.quit()
         print('邮件发送成功')
     except smtplib.SMTPException as e:
-        print('邮件发送失败')
+        print('邮件发送失败', e)
 
 
 def sendHtml(subject, content):
@@ -39,8 +39,8 @@ def sendHtml(subject, content):
         smtpObj.quit()
         print('邮件发送成功')
     except smtplib.SMTPException as e:
-        print('邮件发送失败')
+        print('邮件发送失败', e)
 
 
 if __name__ == '__main__':
-    send('小伙子你很危险啊！！！')
+    send('test', '小伙子你很危险啊！！！')

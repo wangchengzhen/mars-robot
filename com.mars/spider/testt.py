@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 
 def country(attr):
-    print()
+    print(attr)
 
 
 if __name__ == '__main__':
-    print()
+    country("Hello World")
 

@@ -13,10 +13,10 @@ def getHtml(url):
 # 从html中解析出图片URL
 def getImg(html):
     reg = r'src="(.*?\.jpg)"'
-    imgre = re.compile(reg);
-    htmld = html.decode('utf-8')
-    imglist = imgre.findall(htmld)
-    return imglist
+    patternImage = re.compile(reg)
+    told = html.decode('utf-8')
+    images = patternImage.findall(told)
+    return images
 
 
 # 下载处理
@@ -26,12 +26,13 @@ def imgDownload(imgUrl):
 
 # 主函数
 def main():
-    url = 'http://wanimal1983.tumblr.com'
+    url = 'https://www.maigoo.com/tuku/430107.html'
     html = getHtml(url)
-    imglist = getImg(html)
-    for imgurl in imglist:
-        print(imgurl)
-        imgDownload(imgurl)
+    print(html)
+    imgList = getImg(html)
+    for imgUrl in imgList:
+        print(imgUrl)
+        imgDownload(imgUrl)
 
 
 # 执行主函数

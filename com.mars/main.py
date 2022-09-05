@@ -1,8 +1,11 @@
 # 打印菱形
+
+
 def printDiamond():
     x = 5
     a = " "
     b = "*"
+
     for i in range(1, x + 1):
         print((x - i) * a + i * b + (i - 1) * b + (x - i) * a)
     for i in range(1, x + 1):
