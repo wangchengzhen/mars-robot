@@ -20,7 +20,7 @@ def cpp(x):
 # 反转list
 def reversedList():
     print(f'Reverse_Output:')
-    letterList = ["aaa", "bbb", "ccc", "ddd", "eee", "fff"]
+    letterList = ["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"]
     print(f'ERROR:', letterList)
     for i in range(0, int(len(letterList) / 2)):
         letterList[i], letterList[-1 - i] = letterList[-1 - i], letterList[i]
@@ -28,6 +28,8 @@ def reversedList():
 
 
 if __name__ == '__main__':
-    printDiamond()
+    # printDiamond()
     # cpp(8)
     # reversedList()
+    app = [8, 9]
+    print(app.index(9))

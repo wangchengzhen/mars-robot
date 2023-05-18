@@ -154,25 +154,25 @@ if __name__ == '__main__':
         # 7艺术 index 760
         # 108 |tag| 编程 |index| 200
         # 118 | tag | 英语 | index | 120
-        time.sleep(20)
+        # time.sleep(20)
         for index in range(0, 1000, 20):
             url = 'https://book.douban.com/tag/' + tags[tags_index] + '?start=' + str(index) + '&type=T'
+            print("URL:" + url)
             book = books(url)
             print('\n')
             print('errorList:', errorIds)
+            print('book:', book)
             time.sleep(20)
             if len(book) == 0 or book is None:
-                time.sleep(20)
                 break
             for book_url in book:
+                time.sleep(20)
                 book_id = re.sub(r'\D', '', book_url)
                 try:
-                    ids.index(book_id)
                     print(local() + ' INFO --- [127.0.0.1]:', 'tag_index|', tags_index, '|tag|', tags[tags_index],
                           '|index|', index)
                     get_book(book_url)
                     ids.append(book_id)
-                    time.sleep(20)
                 except:
                     print(local() + ' ERROR --- [127.0.0.1]:', 'tag_index|', tags_index, '|tag|', tags[tags_index],
                           '|index|', index)
